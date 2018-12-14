@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.li.mapper.UserMapper">
+
+    <sql id="selectUser">
+        select u.user_id,u.username,u.password,u.nickname,r.role_id,
+          r.role_name,d.dept_id,d.dept_name,u.phone,u.email,u.status,u.create_by,
+          c.nickname creator ,u.create_time,u.update_by, m.nickname modifier,u.update_time
+        from user u
+        left join user_role ur on u.user_id = ur.user_id
+	    left join role r on r.role_id = ur.role_id
+        left join user c on u.create_by = c.user_id
+        left join user m on u.update_by = m.user_id
+        left join department d on d.dept_id = u.dept_id
+    </sql>
+    <resultMap id="userInfoMap" type="com.li.bean.User">
+        <id column="user_id" property="userId" />
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="nickname" property="nickname"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!--创建人信息-->
+        <association property="creator" javaType="com.li.bean.User">
+            <id column="create_by" property="userId"/>
+            <result column="creator" property="nickname"/>
+        </association>
+        <!--修改人信息-->
+        <association property="modifier" javaType="com.li.bean.User">
+            <id column="update_by" property="userId"/>
+            <result column="modifier" property="nickname"/>
+        </association>
+        <!--部门信息-->
+        <association property="dept" javaType="com.li.bean.Department">
+            <id column="dept_id" property="deptId"/>
+            <result column="dept_name" property="deptName"/>
+        </association>
+        <!--角色-->
+        <collection property="roleList" ofType="com.li.bean.Role">
+            <id column="role_id" property="roleId"/>
+            <result column="role_name" property="roleName"/>
+        </collection>
+    </resultMap>
+    
+    <insert id="saveUser" useGeneratedKeys="true" keyProperty="userId">
+        insert into user(user_id,dept_id,username,nickname,password,phone,email,status,create_by,create_time)
+        values(#{userId},#{deptId},#{username},#{nickname},#{password},#{phone},#{email},#{status},#{creator.userId},#{createTime})
+    </insert>
+
+    <update id="updateUserById">
+        update user
+        <set>
+            <if test="password != null">password = #{password},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="deptId != null">dept_id = #{dept.deptId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{modifier.userId},</if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteUserById">
+        delete from user where user_id=#{id}
+    </delete>
+    <delete id="deleteUserByIds">
+        delete from user where user_id in
+            <foreach collection="ids" separator="," item="id" open="(" close=")">
+                #{id}
+            </foreach>
+    </delete>
+
+    <select id="getUserById" resultMap="userInfoMap">
+      <include refid="selectUser"/> where u.user_id = #{userId}
+    </select>
+
+    <select id="getUserByUsername" resultMap="userInfoMap">
+      <include refid="selectUser"/> where u.username = #{username}
+    </select>
+
+    <select id="getUserListByCondition" resultMap="userInfoMap">
+        <include refid="selectUser"/>
+        <where>
+            <if test="userId != null"> u.user_id = #{userId}</if>
+            <if test="username != null and username != ''"> and u.username = #{username} </if>
+            <if test="nickname != null and nickname != ''"> and u.nickname = #{nickname} </if>
+            <if test="phone != null and phone != ''"> and u.phone = #{phone} </if>
+            <if test="email != null and email != ''"> and u.email = #{email} </if>
+            <if test="dept != null">
+                <if test="dept.deptId != null"> and u.dept_id = #{dept.deptId} </if>
+            </if>
+            <if test="status != null"> and u.status = #{status} </if>
+            <if test="creator != null">
+                <if test="creator.userId != null"> and u.create_by = #{creator.userId}</if>
+            </if>
+        </where>
+        order by u.user_id
+    </select>
+</mapper>

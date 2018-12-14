@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.li.mapper.UserRoleMapper">
+    <resultMap id="userRoleInfoMap" type="com.li.bean.UserRole">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="role_id" property="roleId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!--创建人信息-->
+        <association property="creator" javaType="com.li.bean.User">
+            <id column="create_by" property="userId"/>
+            <result column="creator" property="nickname"/>
+        </association>
+        <!--修改人信息-->
+        <association property="modifier" javaType="com.li.bean.User">
+            <id column="update_by" property="userId"/>
+            <result column="modifier" property="nickname"/>
+        </association>
+    </resultMap>
+
+    <insert id="saveUserRole" useGeneratedKeys="true" keyProperty="id">
+        insert into user_role(id,user_id,role_id,create_by,create_time) values(#{id},#{userId},#{roleId},#{creator.userId},#{createTime})
+    </insert>
+    <update id="updateUserRoleById">
+        update user_role
+        <set>
+            <if test="userId !=null"> user_id = #{userId},</if>
+            <if test="roleId !=null"> role_id = #{roleId},</if>
+            <if test="updateBy !=null"> update_by = #{modifier.userId},</if>
+            <if test="updateTime !=null"> update_time = #{updateTime}</if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateUserRoleByUserId">
+        update user_role
+        <set>
+            <if test="roleId !=null"> role_id = #{roleId},</if>
+            <if test="updateBy !=null"> update_by = #{updateBy},</if>
+            <if test="updateTime !=null"> update_time = #{updateTime}</if>
+        </set>
+        where user_id = #{userId}
+    </update>
+    <delete id="deleteUserRoleById">
+        delete from user_role where id = #{id}
+    </delete>
+    <select id="getUserRoleByCondition" resultMap="userRoleInfoMap">
+        select ur.id,ur.user_id,ur.role_id,
+          ur.create_by,c.nickname creator,ur.create_time,
+          ur.update_by, m.nickname modifier,ur.update_time
+        from user_role ur
+        left join user c on c.user_id = ur.user_id
+        left join user m on m.user_id = ur.user_id
+        <where>
+            <if test="roleId != null"> ur.role_id = #{roleId}</if>
+            <if test="userId != null"> and ur.user_id = #{userId}</if>
+        </where>
+    </select>
+</mapper>

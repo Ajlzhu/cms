@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!--加载资源文件-->
+    <context:property-placeholder location="classpath:resources/resources.properties"/>
+    <!--包扫描-->
+    <context:component-scan base-package="com.li.controller,com.li.exception"/>
+    <!--注解驱动-->
+    <mvc:annotation-driven/>
+    <!--静态资源处理-->
+    <mvc:default-servlet-handler/>
+    <!--视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!--指定视图的前缀和后缀，Controller返回的String类型与这里的前后缀拼接，构成返回的视图页面地址-->
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+</beans>

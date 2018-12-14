@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.li.mapper.PermissionMapper">
+    <resultMap id="permissionRoleMap" type="com.li.bean.Permission">
+        <id column="p_id" property="pId"/>
+        <result column="p_name" property="pName"/>
+        <result column="p_url" property="pUrl"/>
+        <result column="p_code" property="pCode"/>
+        <result column="sort" property="sort"/>
+        <result column="type" property="type"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!--创建人-->
+        <association property="creator" javaType="com.li.bean.User">
+            <id column="create_by" property="userId"/>
+            <result column="creator" property="nickname"/>
+        </association>
+        <!--修改人-->
+        <association property="modifier" javaType="com.li.bean.User">
+            <id column="update_by" property="userId"/>
+            <result column="modifier" property="nickname"/>
+        </association>
+        <!--角色-->
+        <collection property="roleList" ofType="com.li.bean.Role">
+            <id column="role_id" property="roleId"/>
+            <result column="role_name" property="roleName"/>
+        </collection>
+    </resultMap>
+    <sql id="selectPermission">
+        SELECT p.p_id,p.p_name,p.p_url,p.p_code,p.parent_id,p.sort,p.type,p.create_by,p.create_time,
+	      p.update_by,p.update_time,r.role_id,r.role_name,c.nickname creator,m.nickname modifier
+        FROM permission p
+        LEFT JOIN role_permission rp ON p.p_id = rp.permission_id
+        LEFT JOIN role r ON r.role_id = rp.role_id
+        LEFT JOIN user_role ur ON r.role_id = ur.role_id
+        LEFT JOIN USER c ON r.create_by = c.user_id
+        LEFT JOIN USER m ON r.update_by = m.user_id
+    </sql>
+    <insert id="savePermission" useGeneratedKeys="true" keyProperty="pId">
+        insert into permission values(#{pId},#{pName},#{pUrl},#{pCode},#{type},#{parentId},#{sort},#{creator.userId},#{createTime})
+    </insert>
+    <update id="updatePermissionById">
+        update permission
+        <set>
+            <if test="pName != null"> p_name = #{pName},</if>
+            <if test="pUrl != null"> p_url = #{pUrl},</if>
+            <if test="pCode != null"> p_code = #{pCode},</if>
+            <if test="type != null"> type = #{type},</if>
+            <if test="parentId != null"> parent_id = #{parentId},</if>
+            <if test="sort != null"> sort = #{sort},</if>
+            <if test="updateBy != null"> update_by = #{modifier.userId},</if>
+            <if test="updateTime != null"> update_time = #{updateTime}</if>
+        </set>
+        where p_id = #{id}
+    </update>
+    <delete id="deletePermissionById">
+        delete from permission where p_id = #{id}
+    </delete>
+    <select id="getAllPermission" resultMap="permissionRoleMap">
+        <include refid="selectPermission"/> order by sort
+
+    </select>
+    <select id="getPermissionByUserId" resultMap="permissionRoleMap">
+       <include refid="selectPermission"/> where ur.user_id = #{userId}
+        <if test="type !=null"> and p.type = #{type}</if>
+        order by p.sort
+    </select>
+    <select id="getPermissionByRoleId" resultMap="permissionRoleMap">
+        <include refid="selectPermission"/> where r.role_id = #{roleId} order by p.sort
+    </select>
+</mapper>

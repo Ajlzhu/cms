@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.li.mapper.RoleMapper">
+    <resultMap id="roleUserPermissionMap" type="com.li.bean.Role">
+        <id column="role_id" property="roleId"/>
+        <result column="role_name" property="roleName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!--创建人-->
+        <association property="creator" javaType="com.li.bean.User">
+            <id column="create_by" property="userId"/>
+            <result column="creator" property="nickname"/>
+        </association>
+        <!--修改人-->
+        <association property="modifier" javaType="com.li.bean.User">
+            <id column="update_by" property="userId"/>
+            <result column="modifier" property="nickname"/>
+        </association>
+        <!--用户-->
+        <collection property="user" ofType="com.li.bean.User">
+            <id column="user_id" property="userId"/>
+            <result column="username" property="username"/>
+            <result column="nickname" property="nickname"/>
+        </collection>
+        <!--权限-->
+        <collection property="permissionList" ofType="com.li.bean.Permission">
+            <id column="p_id" property="pId"/>
+            <result column="p_name" property="pName"/>
+        </collection>
+
+    </resultMap>
+    <sql id="selectRole">
+        SELECT r.role_id,r.role_name,r.create_by,r.create_time,r.update_by,u.user_id,
+          u.username,u.nickname,r.update_time,p.p_id,p.p_name,c.nickname creator,m.nickname modifier
+        FROM role r
+	    LEFT JOIN role_permission rp ON r.role_id = rp.role_id
+	    LEFT JOIN permission p ON p.p_id = rp.permission_id
+	    LEFT JOIN user_role ur ON r.role_id = ur.role_id
+	    LEFT JOIN user u ON u.user_id = ur.user_id
+	    LEFT JOIN user c ON r.create_by = c.user_id
+        LEFT JOIN user m ON r.update_by = m.user_id
+    </sql>
+    <insert id="saveRole" useGeneratedKeys="true" keyProperty="roleId">
+        insert into role values(#{roleId},#{roleName},#{creator.userId},#{createTime})
+    </insert>
+
+    <update id="updateRoleById">
+        update role
+        <set>
+            <if test="roleName != null">role_name = #{roleName},</if>
+            <if test="modifier != null">
+                <if test="modifier.userId != null">update_by = #{modifier.userId},</if>
+            </if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        where role_id = #{roleId}
+    </update>
+
+    <delete id="deleteRoleById">
+        delete from role where role_id = #{roleId}
+    </delete>
+
+    <delete id="deleteRoleByIds">
+        delete from role where role_id
+        <foreach collection="ids" open="in(" item="id" separator="," close=")">
+            #{id}
+        </foreach>
+
+    </delete>
+
+    <select id="getRoleListByUserId" resultMap="roleUserPermissionMap">
+        <include refid="selectRole"/>
+        where u.user_id = #{userId}
+    </select>
+    <select id="getRoleListByCondition" resultMap="roleUserPermissionMap">
+        <include refid="selectRole"/>
+        <where>
+            <if test="roleId != null"> r.role_id = #{roleId}</if>
+            <if test="roleName != null and roleName != ''"> and r.role_name = #{roleName}</if>
+        </where>
+        order by r.role_id
+    </select>
+    <select id="getRoleListByCondition_COUNT" resultType="Long">
+        select count(*) from role
+        <where>
+            <if test="roleName != null and roleName != ''"> role_name = #{roleName}</if>
+        </where>
+    </select>
+</mapper>

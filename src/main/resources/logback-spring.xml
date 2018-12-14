@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration  scan="true" scanPeriod="60 seconds" debug="false">
+
+    <contextName>logback</contextName>
+
+    <!-- 日志文件存放的基础路径(路径最后不需要加/或\) -->
+    <property name="log.path" value="D:/Idea Projects/cms/log" />
+
+    <!--输出到控制台-->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+          <level>ERROR</level>
+      </filter>-->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--输出到文件-->
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/logback.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--单个日志文件的最大50M-->
+            <maxFileSize>50MB</maxFileSize>
+            <!-- 日志文件保留天数 -->
+            <maxHistory>30</maxHistory>
+            <!-- 所有日志文件最大1GB -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %contextName[%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="console" />
+        <appender-ref ref="file" />
+    </root>
+
+    <!-- logback为java中的包 -->
+    <logger name="com.li.controller"/>
+    <logger name="com.li.service"/>
+    <logger name="com.li.exception"/>
+    <logger name="com.li.utils"/>
+    <logger name="com.li.mapper" level="DEBUG" additivity="false">
+        <appender-ref ref="console"/>
+    </logger>
+    <!--logback.LogbackDemo：类的全路径 -->
+    <!--<logger name="com.li.controller.HelloController" level="WARN" additivity="false">
+       <appender-ref ref="console"/>
+   </logger>  -->
+</configuration>

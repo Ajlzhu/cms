@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.li.mapper.DepartmentMapper">
+    <sql id="selectDept">
+        select d.dept_id,d.dept_name,d.parent_id,d.status,c.username creator,
+        d.create_by,d.create_time,u.username modifier,d.update_by,d.update_time
+        from department d
+        left join user c on c.user_id = d.create_by
+        left join user u on u.user_id = d.update_by
+    </sql>
+
+    <select id="getDeptListByCondition" resultType="com.li.bean.Department">
+       <include refid="selectDept"/>
+        <where>
+            <if test="deptId != null"> d.dept_id = #{deptId}</if>
+            <if test="deptName != null and deptName != ''"> and d.dept_name = #{deptName}</if>
+            <if test="status != null"> and d.status = #{status}</if>
+            <if test="parentId != null"> and d.parent_id = #{parentId}</if>
+        </where>
+    </select>
+</mapper>

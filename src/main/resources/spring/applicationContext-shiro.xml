@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--1. 配置securityManager-->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!--登录页面-->
+        <property name="loginUrl" value="/login"/>
+        <!--登录成功页面-->
+        <property name="successUrl" value="/home"/>
+        <!--无权限问访问页面-->
+        <property name="unauthorizedUrl" value="/unauthorized"/>
+        <!--通过数据库查询动态配置页面访问权限-->
+        <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"/>
+        <!--
+            配置页面的访问权限
+                1) anno 可以匿名访问
+                2) authc 必须认证才能访问
+                3) logout 注销登录
+                4) roles 角色过滤器 必须具备某些角色才能访问页面
+
+        <property name="filterChainDefinitions">
+            <value>
+                /login* = anon
+                /register* = anon
+                /logout* = logout
+
+                /admin  = roles[admin]
+                /user  = roles[user]
+                /** = authc
+            </value>
+        </property>
+        -->
+    </bean>
+    <!--2. 配置缓存管理器-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="authenticator" ref="authenticator"/>
+        <property name="realms">
+            <list>
+                <ref bean="shiroRealm"/>
+            </list>
+        </property>
+    </bean>
+    <!--3. 配置realm-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache.xml"/>
+    </bean>
+
+    <!--4. 配置lifecycleBeanPostProcessor 可以自动调用配置在spring ioc容器中的 shiro bean的声明周期方法-->
+    <bean id="shiroRealm" class="com.li.shiro.ShiroRealm">
+        <!--配置密码比较器-->
+        <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <!--指定加密方式-->
+                <property name="hashAlgorithmName" value="MD5"></property>
+                <!--指定加密次数-->
+                <property name="hashIterations" value="2"></property>
+            </bean>
+        </property>
+    </bean>
+    <!--多realm认证-->
+    <bean id="authenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+        <property name="authenticationStrategy">
+            <bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean>
+        </property>
+    </bean>
+    <!--5. 在ioc容器中使用shiro注解(必须配置lifecycleBeanPostProcessor才能使用)-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor"/>
+    <!--6. 配置shiroFilter
+        id必须和web.xml文件中的shiroFilter的filter-name一致
+        DelegatingFilterProxy实际上是一个Filter代理对象,默认情况下spring会到ioc容器中查找和
+        <filter-name>对应的Filter Bean, 可以通过targetBeanName的初始化参数来配置filter bean的id
+    -->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+    <!--配置一个bean 该bean实际上是一个map(用于动态配置页面访问权限) 通过实例工厂创建-->
+    <bean id="filterChainDefinitionMap" factory-bean="filterChainDefinitionMapBuilder" factory-method="buildFilterChainDefinitionMap">
+    </bean>
+    <!--实例工厂类-->
+    <bean id="filterChainDefinitionMapBuilder" class="com.li.shiro.FilterChainDefinitionMapBuilder"/>
+
+</beans>
