@@ -1,5 +1,6 @@
 package com.li.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.io.Serializable;
@@ -16,6 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@JsonIgnoreProperties(value = {"handler"})
 public class Role implements Serializable {
     //角色id
     private Integer roleId;
@@ -33,6 +35,6 @@ public class Role implements Serializable {
     //权限集合
     private List<Permission> permissionList;
     //用户集合
-    private List<User> user;
+    private List<User> userList;
 
 }

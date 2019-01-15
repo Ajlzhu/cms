@@ -18,26 +18,19 @@
             <result column="modifier" property="nickname"/>
         </association>
         <!--用户-->
-        <collection property="user" ofType="com.li.bean.User">
-            <id column="user_id" property="userId"/>
-            <result column="username" property="username"/>
-            <result column="nickname" property="nickname"/>
+        <collection property="userList"
+                    select="com.li.mapper.UserMapper.getUserListByRoleId" column="user_id">
         </collection>
         <!--权限-->
-        <collection property="permissionList" ofType="com.li.bean.Permission">
-            <id column="p_id" property="pId"/>
-            <result column="p_name" property="pName"/>
+        <collection property="permissionList"
+                    select="com.li.mapper.PermissionMapper.getPermissionByRoleId" column="{roleId=role_id,type=ptype}">
         </collection>
 
     </resultMap>
     <sql id="selectRole">
-        SELECT r.role_id,r.role_name,r.create_by,r.create_time,r.update_by,u.user_id,
-          u.username,u.nickname,r.update_time,p.p_id,p.p_name,c.nickname creator,m.nickname modifier
+        SELECT r.role_id,r.role_name,r.create_by,r.create_time,r.update_by,
+        r.update_time,c.nickname creator,m.nickname modifier,null ptype
         FROM role r
-	    LEFT JOIN role_permission rp ON r.role_id = rp.role_id
-	    LEFT JOIN permission p ON p.p_id = rp.permission_id
-	    LEFT JOIN user_role ur ON r.role_id = ur.role_id
-	    LEFT JOIN user u ON u.user_id = ur.user_id
 	    LEFT JOIN user c ON r.create_by = c.user_id
         LEFT JOIN user m ON r.update_by = m.user_id
     </sql>
@@ -69,10 +62,25 @@
 
     </delete>
 
-    <select id="getRoleListByUserId" resultMap="roleUserPermissionMap">
-        <include refid="selectRole"/>
-        where u.user_id = #{userId}
+    <select id="getRoleListByUserId" resultType="com.li.bean.Role">
+        SELECT
+            r.role_id,
+            r.role_name
+        FROM
+            role r
+        LEFT JOIN user_role ur on r.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
     </select>
+    <select id="getRoleListByPermissionId" resultType="com.li.bean.Role">
+        SELECT
+            r.role_id,
+            r.role_name
+        FROM
+            role r
+        LEFT JOIN role_permission rp on r.role_id = rp.permission_id
+        WHERE rp.permission_id = #{permissionId}
+    </select>
+
     <select id="getRoleListByCondition" resultMap="roleUserPermissionMap">
         <include refid="selectRole"/>
         <where>

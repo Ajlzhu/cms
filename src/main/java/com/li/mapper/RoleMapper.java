@@ -21,5 +21,7 @@ public interface RoleMapper {
 
     List<Role> getRoleListByUserId(Integer userId);
 
+    List<Role> getRoleListByPermissionId(Integer permissionId);
+
     List<Role> getRoleListByCondition(Role role);
 }

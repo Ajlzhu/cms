@@ -1,5 +1,6 @@
 package com.li.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
@@ -19,6 +20,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(value = {"handler"})
 public class Permission implements Serializable {
     //权限id
     private Integer pId;

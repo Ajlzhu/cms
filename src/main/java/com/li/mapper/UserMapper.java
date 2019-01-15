@@ -25,5 +25,5 @@ public interface UserMapper {
 
     List<User> getUserListByCondition(User user);
 
-
+    List<User> getUserListByRoleId(Integer roleId);
 }

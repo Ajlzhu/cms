@@ -23,20 +23,15 @@
             <result column="modifier" property="nickname"/>
         </association>
         <!--角色-->
-        <collection property="roleList" ofType="com.li.bean.Role">
-            <id column="role_id" property="roleId"/>
-            <result column="role_name" property="roleName"/>
+        <collection property="roleList" select="com.li.mapper.RoleMapper.getRoleListByPermissionId" column="p_id">
         </collection>
     </resultMap>
     <sql id="selectPermission">
         SELECT p.p_id,p.p_name,p.p_url,p.p_code,p.parent_id,p.sort,p.type,p.create_by,p.create_time,
-	      p.update_by,p.update_time,r.role_id,r.role_name,c.nickname creator,m.nickname modifier
+	      p.update_by,p.update_time,c.nickname creator,m.nickname modifier
         FROM permission p
-        LEFT JOIN role_permission rp ON p.p_id = rp.permission_id
-        LEFT JOIN role r ON r.role_id = rp.role_id
-        LEFT JOIN user_role ur ON r.role_id = ur.role_id
-        LEFT JOIN USER c ON r.create_by = c.user_id
-        LEFT JOIN USER m ON r.update_by = m.user_id
+        LEFT JOIN USER c ON p.create_by = c.user_id
+        LEFT JOIN USER m ON p.update_by = m.user_id
     </sql>
     <insert id="savePermission" useGeneratedKeys="true" keyProperty="pId">
         insert into permission values(#{pId},#{pName},#{pUrl},#{pCode},#{type},#{parentId},#{sort},#{creator.userId},#{createTime})
@@ -58,16 +53,28 @@
     <delete id="deletePermissionById">
         delete from permission where p_id = #{id}
     </delete>
-    <select id="getAllPermission" resultMap="permissionRoleMap">
-        <include refid="selectPermission"/> order by sort
-
+    <select id="getAllPermission" resultType="com.li.bean.Permission">
+       SELECT p.p_id,p.p_name,p.p_url,p.p_code,p.parent_id,p.sort,p.type,
+        p.create_by,p.create_time,p.update_by,p.update_time
+        FROM permission p
+        ORDER BY sort
     </select>
-    <select id="getPermissionByUserId" resultMap="permissionRoleMap">
-       <include refid="selectPermission"/> where ur.user_id = #{userId}
+    <select id="getPermissionByUserId" resultType="com.li.bean.Permission">
+        SELECT p.p_id,p.p_name,p.p_url,p.p_code,p.parent_id,
+        p.sort,p.type,p.create_by,p.create_time,p.update_by,p.update_time
+        FROM permission p
+        LEFT JOIN role_permission rp ON p.p_id = rp.permission_id
+        LEFT JOIN user_role ur ON rp.role_id = ur.role_id
+        where ur.user_id = #{userId}
         <if test="type !=null"> and p.type = #{type}</if>
         order by p.sort
     </select>
-    <select id="getPermissionByRoleId" resultMap="permissionRoleMap">
-        <include refid="selectPermission"/> where r.role_id = #{roleId} order by p.sort
+    <select id="getPermissionByRoleId" resultType="com.li.bean.Permission">
+        SELECT p.p_id,p.p_name,p.p_url,p.p_code,p.parent_id,p.sort,
+          p.type,p.create_by,p.create_time,p.update_by,p.update_time
+        FROM permission p
+        LEFT JOIN role_permission rp ON p.p_id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+        ORDER BY p.sort
     </select>
 </mapper>

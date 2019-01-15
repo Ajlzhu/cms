@@ -3,6 +3,9 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+    <!-- <typeAliases>
+        <package name="com.li.pojo"/>
+    </typeAliases> -->
     <!-- 全局配置 -->
     <settings>
         <!--允许 JDBC 支持自动生成主键 -->
@@ -34,7 +37,5 @@
             <property name="supportMethodsArguments" value="true"/>
         </plugin>
     </plugins>
-    <!-- <typeAliases>
-        <package name="com.li.pojo"/>
-    </typeAliases> -->
+
 </configuration>

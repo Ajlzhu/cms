@@ -89,7 +89,8 @@ public class ShiroRealm extends AuthorizingRealm {
      * 重新加载 用户授权信息
      * @return void
      */
-    public void reloadAuthorizationInfo(){
-
+    @Override
+    public void clearCachedAuthorizationInfo(PrincipalCollection principals) {
+        super.clearCachedAuthorizationInfo(principals);
     }
 }

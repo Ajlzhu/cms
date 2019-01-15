@@ -4,12 +4,9 @@
 <mapper namespace="com.li.mapper.UserMapper">
 
     <sql id="selectUser">
-        select u.user_id,u.username,u.password,u.nickname,r.role_id,
-          r.role_name,d.dept_id,d.dept_name,u.phone,u.email,u.status,u.create_by,
-          c.nickname creator ,u.create_time,u.update_by, m.nickname modifier,u.update_time
+        select u.user_id,u.username,u.password,u.nickname,d.dept_id,d.dept_name,u.phone,u.email,u.status,
+          u.create_by,c.nickname creator ,u.create_time,u.update_by, m.nickname modifier,u.update_time
         from user u
-        left join user_role ur on u.user_id = ur.user_id
-	    left join role r on r.role_id = ur.role_id
         left join user c on u.create_by = c.user_id
         left join user m on u.update_by = m.user_id
         left join department d on d.dept_id = u.dept_id
@@ -40,9 +37,7 @@
             <result column="dept_name" property="deptName"/>
         </association>
         <!--角色-->
-        <collection property="roleList" ofType="com.li.bean.Role">
-            <id column="role_id" property="roleId"/>
-            <result column="role_name" property="roleName"/>
+        <collection property="roleList" select="com.li.mapper.RoleMapper.getRoleListByUserId" column="user_id">
         </collection>
     </resultMap>
     
@@ -101,5 +96,15 @@
             </if>
         </where>
         order by u.user_id
+    </select>
+    <select id="getUserListByRoleId" resultType="com.li.bean.User">
+        SELECT
+            u.user_id,
+            u.username,
+            u.nickname
+        FROM
+            user u
+        LEFT JOIN user_role ur on u.user_id = ur.role_id
+        WHERE ur.role_id = #{roleId}
     </select>
 </mapper>

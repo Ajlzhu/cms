@@ -1,5 +1,6 @@
 package com.li.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
+@JsonIgnoreProperties(value = {"handler"})
 public class Department implements Serializable {
     //部门id
     private Integer deptId;

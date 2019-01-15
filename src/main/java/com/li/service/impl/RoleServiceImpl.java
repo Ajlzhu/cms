@@ -8,6 +8,7 @@ import com.li.mapper.RoleMapper;
 import com.li.mapper.RolePermissionMapper;
 import com.li.service.RoleService;
 import com.li.utils.DateUtil;
+import com.li.utils.shiroUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,7 @@ public class RoleServiceImpl implements RoleService {
             rolePermissionMapper.saveRolePermission(rolePermission);
         }
         //4.更新shiro授权缓存
+        shiroUtil.clearCacheAuthorizationInfo();
         return b;
     }
 
